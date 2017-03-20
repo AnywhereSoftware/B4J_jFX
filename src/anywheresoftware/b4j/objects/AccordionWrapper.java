@@ -4,11 +4,9 @@ import java.util.HashMap;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.geometry.Side;
 import javafx.scene.Node;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.Accordion;
+import javafx.scene.control.TitledPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -24,97 +22,97 @@ import anywheresoftware.b4j.objects.MenuItemWrapper.ContextMenuWrapper;
 import anywheresoftware.b4j.objects.NodeWrapper.ControlWrapper;
 import anywheresoftware.b4j.objects.PaneWrapper.ConcretePaneWrapper;
 
-@ShortName("TabPane")
-@Events(values={"TabChanged (SelectedTab As TabPage)"})
-public class TabPaneWrapper extends ControlWrapper<TabPane> {
+/**
+ * A container of TitledPanes. These are panes with title. It is similar to TabPane.
+ */
+@ShortName("Accordion")
+@Events(values={"PaneChanged (ExpandedPane As TitledPane)"})
+public class AccordionWrapper extends ControlWrapper<Accordion>{
 	@Override
 	@Hide
 	public void innerInitialize(final BA ba, final String eventName, boolean keepOldObject) {
 		if (!keepOldObject)
-			setObject(new TabPane());
+			setObject(new Accordion());
 		super.innerInitialize(ba, eventName, true);
 		final Object sender = getObject();
-		if (ba.subExists(eventName + "_tabchanged")) {
-			getObject().getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Tab>() {
+		if (ba.subExists(eventName + "_panechanged")) {
+			getObject().expandedPaneProperty().addListener(new ChangeListener<TitledPane>() {
 
 				@Override
-				public void changed(ObservableValue<? extends Tab> arg0,
-						Tab arg1, Tab arg2) {
-					ba.raiseEventFromUI(sender, eventName + "_tabchanged", AbsObjectWrapper.ConvertToWrapper(new TabWrapper(), arg2));
+				public void changed(
+						ObservableValue<? extends TitledPane> observable,
+						TitledPane oldValue, TitledPane newValue) {
+					ba.raiseEventFromUI(sender, eventName + "_panechanged", AbsObjectWrapper.ConvertToWrapper(new TitledPaneWrapper(), newValue));
 				}
 			});
 		}
-		getObject().setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 	}
 	/**
-	 * Sets the tabs position. The possible values are: "TOP", "LEFT", "RIGHT", "BOTTOM". 
-	 */
-	public void SetSide(Side Side) {
-		getObject().setSide(Side);
-	}
-	/**
-	 * Gets a list with the TabPane tabs.
+	 * Gets a list with the TitledPanes.
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public List getTabs() {
+	public List getPanes() {
 		List l1 = new List();
-		l1.setObject((java.util.List)getObject().getTabs());
+		l1.setObject((java.util.List)getObject().getPanes());
 		return l1;
 	}
 	/**
-	 * Gets the selected tab page.
+	 * Gets the expanded TitledPane. Returns an uninitialized object if no pane is expanded. 
 	 */
-	public TabWrapper getSelectedItem() {
-		return (TabWrapper)AbsObjectWrapper.ConvertToWrapper(new TabWrapper(), getObject().getSelectionModel().getSelectedItem());
+	public TitledPaneWrapper getSelectedItem() {
+		return (TitledPaneWrapper)AbsObjectWrapper.ConvertToWrapper(new TitledPaneWrapper(), getObject().getExpandedPane());
 	}
 	/**
-	 * Gets or sets the selected index.
+	 * Gets or sets the expanded pane.
+	 *Returns -1 if no pane is expanded. Pass -1 to close the expanded pane.
 	 */
 	public int getSelectedIndex() {
-		return getObject().getSelectionModel().getSelectedIndex();
+		return getObject().getPanes().indexOf(getObject().getExpandedPane());
 	}
 	
 	public void setSelectedIndex(int i) {
-		getObject().getSelectionModel().select(i);
+		if (i == -1)
+			getObject().setExpandedPane(null);
+		else {
+			getObject().setExpandedPane(getObject().getPanes().get(i));
+			getObject().expandedPaneProperty().get().setExpanded(true);
+		}
 	}
-	
 	/**
-	 * Creates a new tab page with a pane as its content. The LayoutFile is loaded to the pane.
+	 * Creates a new TitledPane. The LayoutFile is loaded to the pane.
 	 *LayoutFile - The layout file will be loaded to the page content.
-	 *TabText - The tab page header text.
+	 *Title - The tab page header text.
 	 */
 	@RaisesSynchronousEvents
-	public TabWrapper LoadLayout(BA ba, String LayoutFile, String TabText) throws Exception {
-		TabWrapper tw = new TabWrapper();
-		tw.Initialize();
-		tw.setText(TabText);
+	public TitledPaneWrapper LoadLayout(BA ba, String LayoutFile, String Title) throws Exception {
 		ConcretePaneWrapper cnw = new ConcretePaneWrapper();
 		cnw.Initialize(ba, "");
-		tw.setContent(cnw.getObject());
 		cnw.LoadLayout(ba, LayoutFile);
-		getTabs().Add(tw.getObject());
-		return tw;
+		TitledPane tp = new TitledPane(Title, cnw.getObject());
+		getObject().getPanes().add(tp);
+		return (TitledPaneWrapper) AbsObjectWrapper.ConvertToWrapper(new TitledPaneWrapper(), tp);
 	}
 	@Hide
 	public static Node build(Object prev, HashMap<String, Object> props, boolean designer, Object tag) throws Exception{
-		TabPane vg = (TabPane) prev;
+		Accordion vg = (Accordion) prev;
 		if (vg == null)  {
-			vg = NodeWrapper.buildNativeView(TabPane.class, props, designer);
+			vg = NodeWrapper.buildNativeView(Accordion.class, props, designer);
 			if (designer) {
 				for (int i = 1;i <= 3;i++) {
-					vg.getTabs().add(new Tab("Tab #" + i));
+					vg.getPanes().add(new TitledPane("Tab #" + i, new Pane()));
 				}
 			}
-			vg.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		}
-		vg.setSide(Side.valueOf((String)props.get("side")));
 		return ControlWrapper.build(vg, props, designer);
 	}
-	
-	@ShortName("TabPage")
-	public static class TabWrapper extends AbsObjectWrapper<Tab> {
+	/**
+	 * A pane with a title.
+	 *Use Accordion.LoadLayout to create new TitledPanes.
+	 */
+	@ShortName("TitledPane")
+	public static class TitledPaneWrapper extends AbsObjectWrapper<TitledPane> {
 		public void Initialize() {
-			setObject(new Tab());
+			setObject(new TitledPane());
 		}
 		
 		/**
@@ -178,5 +176,6 @@ public class TabPaneWrapper extends ControlWrapper<TabPane> {
 		}
 		
 	}
+
 
 }

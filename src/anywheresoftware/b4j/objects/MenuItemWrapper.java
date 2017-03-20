@@ -206,7 +206,7 @@ public class MenuItemWrapper<T extends MenuItem> extends AbsObjectWrapper<T> {
 	 *The two events are raised by menu items added with the internal designer.
 	 */
 	@DontInheritEvents
-	@Events(values={"Action", "SelectionChanged"})
+	@Events(values={"Action", "SelectedChange (Selected As Boolean)"})
 	@ShortName("MenuBar")
 	public static class MenuBarWrapper extends ControlWrapper<MenuBar> {
 		@Override

@@ -24,6 +24,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import anywheresoftware.b4a.AbsObjectWrapper;
 import anywheresoftware.b4a.BA.DependsOn;
+import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.BA.RaisesSynchronousEvents;
 import anywheresoftware.b4a.BA.ShortName;
 import anywheresoftware.b4a.BA.Version;
@@ -34,7 +35,7 @@ import anywheresoftware.b4j.objects.ImageViewWrapper.ImageWrapper;
 /**
  * A class that holds utility methods related to JavaFX apps.
  */
-@Version(4.71f)
+@Version(5.00f)
 @DependsOn(values = {"Json"})
 @ShortName("JFX")
 public class JFX {
@@ -48,6 +49,36 @@ public class JFX {
 				Italic ? FontPosture.ITALIC : FontPosture.REGULAR, Size);
 		fw.setObject(f);
 		return fw;
+	}
+	private static boolean fontAwesomeLoaded, materialIconsLoaded;
+	@Hide
+	public static void loadFontAwesome() throws IOException {
+		if (fontAwesomeLoaded == false) {
+			fontAwesomeLoaded = true;
+			JFX.LoadFont(File.getDirAssets(), "FontAwesome.otf", 20);
+		}
+	}
+	@Hide
+	public static void loadMaterialIcons() throws IOException {
+		if (materialIconsLoaded == false) {
+			materialIconsLoaded = true;
+			JFX.LoadFont(File.getDirAssets(), "MaterialIcons.ttf", 20);
+		}
+	}
+	/**
+	 * Returns the FontAwesome font.
+	 */
+	public static FontWrapper CreateFontAwesome(double Size) throws IOException {
+		loadFontAwesome();
+		return CreateFont("FontAwesome", Size, false, false);
+		
+	}
+	/**
+	 * Returns the Material Icons font.
+	 */
+	public static FontWrapper CreateMaterialIcons(double Size) throws IOException {
+		loadMaterialIcons();
+		return CreateFont("Material Icons", Size, false, false);
 	}
 	/**
 	 * Returns a list with all the installed font family names.

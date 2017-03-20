@@ -540,7 +540,7 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		StringBuilder sb = new StringBuilder(s == null ? "" : s);
 		return sb;
 	}
-	private static boolean fontAwesomeLoaded, materialIconsLoaded;
+	
 	@Hide
 	protected static void buildFont(Map<String, Object> origProps, Node n, Map<String, Object> fontProps, StringBuilder sb, boolean designer,
 			boolean customView) {
@@ -559,14 +559,10 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 				origProps.put("text", origProps.get("materialIcons"));
 		}
 		try {
-			if (fontAwesome && fontAwesomeLoaded == false) {
-				fontAwesomeLoaded = true;
-				JFX.LoadFont(File.getDirAssets(), "FontAwesome.otf", 20);
-			}
-			if (materialIcons && materialIconsLoaded == false) {
-				materialIconsLoaded = true;
-				JFX.LoadFont(File.getDirAssets(), "MaterialIcons.ttf", 20);
-			}
+			if (fontAwesome)
+				JFX.loadFontAwesome();
+			if (materialIcons)
+				JFX.loadMaterialIcons();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

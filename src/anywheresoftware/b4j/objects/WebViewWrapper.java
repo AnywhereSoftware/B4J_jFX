@@ -61,6 +61,15 @@ public class WebViewWrapper extends NodeWrapper<WebView>{
 		getObject().getEngine().load(Url);
 	}
 	/**
+	 * Gets or sets the zoom factor. Default is 1.
+	 */
+	public double getZoom() {
+		return getObject().getZoom();
+	}
+	public void setZoom(double d) {
+		getObject().setZoom(d);
+	}
+	/**
 	 * Asynchronously loads the given html string.
 	 */
 	public void LoadHtml(String HtmlString) {

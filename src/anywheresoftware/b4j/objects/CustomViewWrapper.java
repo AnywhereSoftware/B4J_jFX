@@ -1,13 +1,17 @@
 package anywheresoftware.b4j.objects;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
+import javafx.scene.control.Menu;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import anywheresoftware.b4a.B4AClass;
@@ -91,6 +95,18 @@ public class CustomViewWrapper extends NodeWrapper<Pane> {
 			StringBuilder sb = new StringBuilder();
 			NodeWrapper.buildFont(props, lbl, (java.util.Map<String, Object>) props.get("font"), sb, designer, true);
 			lbl.setStyle(sb.toString());
+		}
+		String tt = (String) props.get("toolTip");
+		if (tt.length() > 0)
+			lbl.setTooltip(new Tooltip(tt));
+		ArrayList<Menu> l1 = MenuItemWrapper.MenuBarWrapper.parseMenusJson((BA)props.get("ba"),
+				(String)props.get("contextMenu"), (String)props.get("eventName"));
+		if (l1.size() > 0) {
+			ContextMenu cm = new ContextMenu();
+			cm.getItems().addAll(l1);
+			lbl.setContextMenu(cm);
+		} else {
+			lbl.setContextMenu(null);
 		}
 		v.setUserData(lbl);
 		NodeWrapper.SetLayout(lbl, new double[] {0, 0, v.getPrefWidth(), v.getPrefHeight()});

@@ -85,11 +85,14 @@ public class ImageViewWrapper extends NodeWrapper<ImageView>{
 		getObject().setPreserveRatio(b);
 	}
 	/**
-	 * Gets or sets the ImageView image.
+	 * Gets the image.
 	 */
 	public ImageWrapper GetImage() {
 		return (ImageWrapper)AbsObjectWrapper.ConvertToWrapper(new ImageWrapper(), getObject().getImage());
 	}
+	/**
+	 * Sets the image.
+	 */
 	public void SetImage(Image Image) {
 		getObject().setImage(Image);
 	}
