@@ -185,16 +185,15 @@ public class PaneWrapper<T extends Pane> extends NodeWrapper<T> implements Itera
 		}
 
 	}
-	/**
-	 * Changes the node Top, Left, PrefWidth and PrefHeight properties with an animation effect.
-	 * Duration - Animation duration in milliseconds.
-	 */
-	public void SetLayoutAnimated(int Duration, double Left, double Top, double PrefWidth, double PrefHeight) {
+	@Hide
+	public void SetLayoutAnimatedImpl (int Duration, double Left, double Top, double PrefWidth, double PrefHeight, boolean raiseAnimationCompleted) {
 		if (Duration == 0) {
 			setTop(Top);
 			setLeft(Left);
 			setPrefWidth(PrefWidth);
 			setPrefHeight(PrefHeight);
+			if (raiseAnimationCompleted)
+				raiseAnimationCompletedEvent(null);
 			return;
 		}
 		KeyValue left = new KeyValue(getObject().layoutXProperty(), Left - getObject().getLayoutBounds().getMinX());
@@ -203,7 +202,16 @@ public class PaneWrapper<T extends Pane> extends NodeWrapper<T> implements Itera
 		KeyValue height = new KeyValue(getObject().prefHeightProperty(), PrefHeight);
 		KeyFrame frame = new KeyFrame(javafx.util.Duration.millis(Duration), left, top, width, height);
 		Timeline timeline = new Timeline(frame);
+		if (raiseAnimationCompleted)
+			raiseAnimationCompletedEvent(timeline);
 		timeline.play();
+	}
+	/**
+	 * Changes the node Top, Left, PrefWidth and PrefHeight properties with an animation effect.
+	 * Duration - Animation duration in milliseconds.
+	 */
+	public void SetLayoutAnimated(int Duration, double Left, double Top, double PrefWidth, double PrefHeight) {
+		SetLayoutAnimatedImpl(Duration, Left, Top, PrefWidth, PrefHeight, true);
 	}
 	/**
 	 * Gets or sets the pane preferred height.

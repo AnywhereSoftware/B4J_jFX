@@ -5,7 +5,10 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,7 @@ import anywheresoftware.b4a.BA;
 import anywheresoftware.b4a.BA.Hide;
 import anywheresoftware.b4a.ConnectorUtils;
 import anywheresoftware.b4a.DynamicBuilder;
+import anywheresoftware.b4a.ObjectWrapper;
 import anywheresoftware.b4a.keywords.Common;
 import anywheresoftware.b4a.objects.streams.File;
 import anywheresoftware.b4a.objects.streams.File.InputStreamWrapper;
@@ -32,6 +36,7 @@ public class LayoutBuilder {
 	private LayoutData layoutData;
 	private HashMap<String, Object> viewsToSendInShellMode;
 	private List<CustomViewWrapper> customViewWrappers = new ArrayList<CustomViewWrapper>();
+	private HashMap<String, Field> classFields;
 	private static WeakReference<Scene> lastScene;
 	private static final int LOADLAYOUT = 1, RESIZE = 2, AUTOSCALE = 3;
 
@@ -119,33 +124,62 @@ public class LayoutBuilder {
 				String cls = (String) props.get("type");
 				if (cls.startsWith("."))
 					cls = "anywheresoftware.b4j.objects" + cls;
-				NodeWrapper ow = (NodeWrapper) Class.forName(cls).newInstance();
-				ow.setObject(o);
-				Object assigningObject = ow;
-				if (ow instanceof CustomViewWrapper) {
-					customViewWrappers.add((CustomViewWrapper)ow);
+				Object assigningObject;
+				
+				if (classFields == null) {
+					classFields = new HashMap<String, Field>();
+					for (Field field : Class.forName(ba.className).getDeclaredFields()) {
+						if (field.getName().startsWith("_"))
+							classFields.put(field.getName(), field);
+					}
+				}
+				Field field = classFields.get("_" + name);
+				NodeWrapper ow;
+				if (cls.equals("anywheresoftware.b4j.objects.CustomViewWrapper")) {
+					CustomViewWrapper cvw = new CustomViewWrapper();
+					ow = cvw;
+					cvw.setObject((Pane)o);
+					customViewWrappers.add(cvw);
 					Object customObject = findCustomViewClass(props).newInstance();
-					CustomViewWrapper cvw = (CustomViewWrapper)ow;
 					cvw.customObject = customObject;
 					cvw.props = new HashMap<String, Object>(props); //create a copy as it can be later modified
 					assigningObject = customObject;
 				}
+				else {
+					ow = (NodeWrapper) Class.forName(cls).newInstance(); 
+					ow.setObject(o);
+					assigningObject = ow;
+					if (field != null && field.getType() != assigningObject.getClass()) {
+						//field type doesn't match
+						if (BA.debugMode) {
+							Type t = ow.getClass().getGenericSuperclass();
+							if (t instanceof ParameterizedType) {
+								ParameterizedType pt = (ParameterizedType)t;
+								if (pt.getActualTypeArguments().length > 0) {
+									ParameterizedType fieldParamType = (ParameterizedType) field.getType().getGenericSuperclass();
+									if (((Class)fieldParamType.getActualTypeArguments()[0]).isAssignableFrom((Class)(pt.getActualTypeArguments()[0])) == false) {
+										throw new RuntimeException("Cannot convert: " + ow.getClass() + ", to: " + field.getType());
+									}
+								}
+							}
+						}
+						ObjectWrapper nw = (ObjectWrapper) field.getType().newInstance();
+						nw.setObject(o);
+						assigningObject = nw;
+					}
+				}
+				
 				if (viewsToSendInShellMode != null)
 					viewsToSendInShellMode.put(name, assigningObject);
 				layoutData.viewsMap.put(name, new WeakReference<Node>(o));
 				//unlike fxmlbuilder this sets the wrapper and not the internal object.
 				//this is better as it creates a new wrapper for each layout loaded.
-				try {
-					Field field = Class.forName(ba.className).getField("_" + name);
-					if (field != null) { //object was declared in Sub Globals
-						try {
-							field.set(ba.eventsTarget, assigningObject);
-						} catch (IllegalArgumentException ee) {
-							throw new RuntimeException("Field " + name  + " was declared with the wrong type.");
-						}
+				if (field != null) { //object was declared in Sub Globals
+					try {
+						field.set(ba.eventsTarget, assigningObject);
+					} catch (IllegalArgumentException ee) {
+						throw new RuntimeException("Field " + name  + " was declared with the wrong type.");
 					}
-				} catch (NoSuchFieldException eee) {
-					//don't do anything
 				}
 				ow.innerInitialize(ba, ((String)props.get("eventName")).toLowerCase(BA.cul), true);
 				parent.getChildren().add(o);

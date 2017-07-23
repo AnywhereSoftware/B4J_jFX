@@ -61,8 +61,6 @@ public class CanvasWrapper extends NodeWrapper<javafx.scene.canvas.Canvas>{
 	public void ClipPath(List Points) {
 		GraphicsContext gc = getObject().getGraphicsContext2D();
 		gc.save();
-		if (Points.getSize() == 0)
-			return;
 		gc.beginPath();
 		double[] p = (double[])Points.Get(0);
 		gc.moveTo(p[0], p[1]);

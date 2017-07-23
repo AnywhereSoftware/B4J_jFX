@@ -92,6 +92,8 @@ public class LabeledWrapper<T extends Labeled> extends ControlWrapper<T> impleme
 		if (c != null)
 			vg.setTextFill(c);
 		vg.setAlignment(Enum.valueOf(Pos.class, (String)props.get("alignment")));
+		if (designer)
+			vg.setMnemonicParsing(false);
 		return vg;
 	}
 	

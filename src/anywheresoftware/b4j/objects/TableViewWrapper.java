@@ -163,6 +163,12 @@ public class TableViewWrapper extends ControlWrapper<TableView<Object[]>> {
 		getObject().getSelectionModel().clearAndSelect(row);
 	}
 	/**
+	 * Clears selection.
+	 */
+	public void ClearSelection() {
+		getObject().getSelectionModel().clearSelection();
+	}
+	/**
 	 * Selects a single cell. Make sure to first set SingleCellSelection to True.
 	 */
 	public void SelectCell(int Row, int Column) {

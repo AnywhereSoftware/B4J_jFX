@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import sun.launcher.resources.launcher;
+import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -63,7 +63,8 @@ import anywheresoftware.b4j.objects.PaneWrapper.ResizeEventManager;
 		"MouseDragged (EventData As MouseEvent)",
 		"MousePressed (EventData As MouseEvent)",
 		"MouseReleased (EventData As MouseEvent)",
-"FocusChanged (HasFocus As Boolean)"})
+		"FocusChanged (HasFocus As Boolean)",
+		"AnimationCompleted"})
 public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements B4aDebuggable{
 	static final int LEFT = 0, RIGHT = 1, BOTH = 2, TOP = 0, BOTTOM = 1;
 	protected BA ba;
@@ -147,6 +148,16 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 				}
 			});
 		}
+		if (ba.subExists(eventName + "_animationcompleted")) {
+			AbsObjectWrapper.getExtraTags(getObject()).put("animationcompleted", new EventHandler<ActionEvent>() {
+
+				@Override
+				public void handle(ActionEvent event) {
+					ba.raiseEventFromUI(sender, eventName + "_animationcompleted");
+				}
+				
+			});
+		}
 	}
 	@Hide
 	@Override
@@ -195,6 +206,7 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		KeyValue a = new KeyValue(getObject().opacityProperty(), Alpha);
 		KeyFrame frame = new KeyFrame(javafx.util.Duration.millis(Duration), a);
 		Timeline timeline = new Timeline(frame);
+		raiseAnimationCompletedEvent(timeline);
 		timeline.play();
 	}
 	/**
@@ -347,6 +359,16 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 	public void setPrefHeight(double d) {
 		SetSize(getObject(), null, d);
 	}
+	protected void raiseAnimationCompletedEvent(Animation anim) {
+		@SuppressWarnings("unchecked")
+		EventHandler<ActionEvent> e = (EventHandler<ActionEvent>) AbsObjectWrapper.extraTagsGetValueIfAvailable(getObject(), "animationcompleted");
+		if (e != null) {
+			if (anim == null)
+				e.handle(null); //duration = 0
+			else
+				anim.setOnFinished(e);
+		}
+	}
 
 	/**
 	 * Sets the width and height of the node.
@@ -470,11 +492,11 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		if (prev instanceof Control) {
 			ConcreteControlWrapper ccw = new ConcreteControlWrapper();
 			ccw.setObject((Control) prev);
-			ccw.SetLayoutAnimated(duration, Left, Top, Width, Height);
+			ccw.SetLayoutAnimatedImpl(duration, Left, Top, Width, Height, false);
 		} else if (prev instanceof Pane) {
 			ConcretePaneWrapper cpw = new ConcretePaneWrapper();
 			cpw.setObject((Pane) prev);
-			cpw.SetLayoutAnimated(duration, Left, Top, Width, Height);
+			cpw.SetLayoutAnimatedImpl(duration, Left, Top, Width, Height, false);
 		}
 		else {
 			SetSize(prev, (double)Width, (double)Height);
@@ -733,6 +755,7 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 					}
 				});
 			}
+			getObject().setMnemonicParsing(false);
 
 		}
 	}
@@ -873,23 +896,22 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 		public void setContextMenu(ContextMenuWrapper c) {
 			getObject().setContextMenu(c.getObject());
 		}
+		
 		/**
 		 * Gets or sets the context menu that will appear when the user right clicks on the control.
 		 */
 		public ContextMenuWrapper getContextMenu() {
 			return (ContextMenuWrapper)AbsObjectWrapper.ConvertToWrapper(new ContextMenuWrapper(), getObject().getContextMenu());
 		}
-
-		/**
-		 * Changes the node Top, Left, PrefWidth and PrefHeight properties with an animation effect.
-		 * Duration - Animation duration in milliseconds.
-		 */
-		public void SetLayoutAnimated(int Duration, double Left, double Top, double PrefWidth, double PrefHeight) {
+		@Hide
+		public void SetLayoutAnimatedImpl (int Duration, double Left, double Top, double PrefWidth, double PrefHeight, boolean raiseAnimationCompleted) {
 			if (Duration == 0) {
 				setTop(Top);
 				setLeft(Left);
 				setPrefWidth(PrefWidth);
 				setPrefHeight(PrefHeight);
+				if (raiseAnimationCompleted)
+					raiseAnimationCompletedEvent(null);
 				return;
 			}
 			KeyValue left = new KeyValue(getObject().layoutXProperty(), Left - getObject().getLayoutBounds().getMinX());
@@ -906,7 +928,16 @@ public class NodeWrapper<T extends Node> extends AbsObjectWrapper<T> implements 
 				frame = new KeyFrame(javafx.util.Duration.millis(Duration), left, top, width, height);
 			}
 			Timeline timeline = new Timeline(frame);
+			if (raiseAnimationCompleted)
+				raiseAnimationCompletedEvent(timeline);
 			timeline.play();
+		}
+		/**
+		 * Changes the node Top, Left, PrefWidth and PrefHeight properties with an animation effect.
+		 * Duration - Animation duration in milliseconds.
+		 */
+		public void SetLayoutAnimated(int Duration, double Left, double Top, double PrefWidth, double PrefHeight) {
+			SetLayoutAnimatedImpl (Duration, Left, Top, PrefWidth, PrefHeight, true);
 		}
 
 		@Hide

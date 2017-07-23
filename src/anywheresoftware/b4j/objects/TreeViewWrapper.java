@@ -22,7 +22,7 @@ import anywheresoftware.b4j.objects.ImageViewWrapper.ImageWrapper;
 import anywheresoftware.b4j.objects.NodeWrapper.ControlWrapper;
 
 @ShortName("TreeView")
-@Events(values={"SelectedItemChanged(SelectedItem As TreeItem)"})
+@Events(values={"SelectedItemChanged (SelectedItem As TreeItem)"})
 public class TreeViewWrapper extends ControlWrapper<TreeView<String>>{
 	@Override
 	@Hide
@@ -48,6 +48,12 @@ public class TreeViewWrapper extends ControlWrapper<TreeView<String>>{
 		getObject().setRoot(new TreeItem<String>("root"));
 		getObject().setShowRoot(false);
 		getObject().getRoot().setExpanded(true);
+	}
+	/**
+	 * Clears selection.
+	 */
+	public void ClearSelection() {
+		getObject().getSelectionModel().clearSelection();
 	}
 	/**
 	 * Shows a checkbox before each item in the TreeView.

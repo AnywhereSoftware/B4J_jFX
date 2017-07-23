@@ -65,6 +65,7 @@ public class ImageViewWrapper extends NodeWrapper<ImageView>{
 			setLeft(Left);
 			setWidth(Width);
 			setHeight(Height);
+			raiseAnimationCompletedEvent(null);
 			return;
 		}
 		KeyValue left = new KeyValue(getObject().layoutXProperty(), Left - getObject().getLayoutBounds().getMinX());
@@ -73,6 +74,7 @@ public class ImageViewWrapper extends NodeWrapper<ImageView>{
 		KeyValue height = new KeyValue(getObject().fitHeightProperty(), Height);
 		KeyFrame frame = new KeyFrame(javafx.util.Duration.millis(Duration), left, top, width, height);
 		Timeline timeline = new Timeline(frame);
+		raiseAnimationCompletedEvent(timeline);
 		timeline.play();
 	}
 	/**

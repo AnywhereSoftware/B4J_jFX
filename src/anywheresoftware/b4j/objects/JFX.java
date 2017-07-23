@@ -35,7 +35,7 @@ import anywheresoftware.b4j.objects.ImageViewWrapper.ImageWrapper;
 /**
  * A class that holds utility methods related to JavaFX apps.
  */
-@Version(5.00f)
+@Version(5.81f)
 @DependsOn(values = {"Json"})
 @ShortName("JFX")
 public class JFX {
@@ -188,7 +188,7 @@ public class JFX {
 	 *Negative - The text to show for the "negative" button. Pass "" if you don't want to show the button.
 	 *Style - One of the MSGBOX constants.
 	 *Example:<code>
-	 *If fx.Msgbox2("Do you want to save changes?", "Example", "Yes", "Cancel", "No", _
+	 *If fx.Msgbox2(MainForm, "Do you want to save changes?", "Example", "Yes", "Cancel", "No", _
 	 *	fx.MSGBOX_CONFIRMATION) = fx.DialogResponse.POSITIVE Then
 	 *	Log("saving file...")
 	 *End If	</code>

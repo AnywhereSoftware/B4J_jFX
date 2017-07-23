@@ -74,6 +74,12 @@ public class ListViewWrapper extends ControlWrapper<ListView<Object>>{
 		}
 	}
 	/**
+	 * Clears selection.
+	 */
+	public void ClearSelection() {
+		getObject().getSelectionModel().clearSelection();
+	}
+	/**
 	 * Gets or sets the selected index.
 	 */
 	public int getSelectedIndex() {
